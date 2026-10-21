@@ -4,7 +4,7 @@ You have to build a microservice that exposes a REST API with two different tabl
 Both tables should be open to creation, deletion, or update. 
 Every request must only set the `Content-Type: application/json`.
 
-[![CircleCI](https://dl.circleci.com/status-badge/img/circleci/82UCLJQ6A8o5rRSH4fZh65/5RcRNgdavvWGzeAteUNeQ3/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/circleci/82UCLJQ6A8o5rRSH4fZh65/5RcRNgdavvWGzeAteUNeQ3/tree/master)
+[![CircleCI](https://dl.circleci.com/status-badge/img/circleci/82UCLJQ6A8o5rRSH4fZh65/5RcRNgdavvWGzeAteUNeQ3/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/circleci/82UCLJQ6A8o5rRSH4fZh65/5RcRNgdavvWGzeAteUNeQ3/tree/master)
 
 ### Features
 - Create new Users
