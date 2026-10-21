@@ -9,10 +9,10 @@ jobs:
     steps:
       - checkout # checkout source code
       - python/install-packages:
-          pkg-manager: pip
+          pkg-manager: uv
       - run:
           name: Run tests
-          command: python -m pytest
+          command: uv run pytest
       - persist_to_workspace:
           root: ~/project
           paths:
