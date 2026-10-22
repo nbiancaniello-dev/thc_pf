@@ -19,14 +19,14 @@ Every request must only set the `Content-Type: application/json`.
 - Docker compose installed without SUDO
 - Ports free: 3000 and 5432
 
-## How to run the APP - (Review)
+## How to run the APP
 
 ```
 chmod 771 ./up_dev.sh
 ./up_dev.sh
 ```
 
-## How to run the tests - (Review)
+## How to run the tests
 
 ```
 chmod 771 ./up_test.sh
@@ -36,18 +36,18 @@ chmod 771 ./up_test.sh
 ## Areas to improve
 
 - Data should be move from tests to an external file
-- Generic method should be user to mock endpoints
+- Generic method should be used to mock endpoints
 - Error handling could be improved (I.E handling non-existing user on Delete)
 - A Seed migration would be useful to have an already working app with data
 
 ## Techs
 
-- uv: 0.1.0
+- uv: 0.13.4
 - python: 3.14.7 
 - fastapi: 0.148.0
 - alembic: 1.20.0
 - pytest: pytest-9.1.1
-- postgres, psycopg
+- postgres: 18.6 + psycopg
 
 ## Decisions made
 
