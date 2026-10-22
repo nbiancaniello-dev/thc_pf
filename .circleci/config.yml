@@ -29,7 +29,7 @@ jobs:
       
       - run:
           name: Wait for Postgress
-          command: command: |
+          command: |
             until pg_isready -h localhost -p 5432 -U postgres; do
               sleep 1
             done
