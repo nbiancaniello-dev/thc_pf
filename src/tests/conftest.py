@@ -3,7 +3,7 @@ import sys
 from collections.abc import AsyncGenerator
 
 os.environ["DATABASE_URL"] = (
-    "postgresql+psycopg://postgres:challenge@localhost/test_postgres"
+    "postgresql+psycopg://postgres:challenge@db:5432/test_postgres"
 )
 
 os.environ["SECRET_KEY"] = "test-secret-key-for-testing-only"

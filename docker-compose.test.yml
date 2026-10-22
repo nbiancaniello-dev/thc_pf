@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:18.6
@@ -32,18 +30,20 @@ services:
         condition: service_healthy
     restart: "no"
 
-  api:
+  test:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - 3000:8080
+      target: builder
+    # Override both ENTRYPOINT and CMD so it never starts FastAPI
+    entrypoint: []
+    command: uv run --group dev pytest src/tests/ -v
     environment:
-      DATABASE_URL: postgresql+psycopg://postgres:challenge@db:5432/postgres
+      DATABASE_URL: postgresql+psycopg://postgres:challenge@db:5432/test_postgres
     depends_on:
       migrate:
         condition: service_completed_successfully
-    restart: unless-stopped
+    restart: "no"
 
 volumes:
   postgres_test:
