@@ -21,6 +21,8 @@ jobs:
           POSTGRES_PASSWORD: challenge
           POSTGRES_DB: test_postgres
 
+    resource_class: medium 
+
     steps:
       - checkout # checkout source code
 
@@ -46,6 +48,9 @@ jobs:
   deploy:
     docker:
       - image: cimg/python:3.12
+
+    resource_class: small
+    
     steps:
       - attach_workspace:
           at: .
