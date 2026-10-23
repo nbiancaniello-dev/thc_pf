@@ -14,33 +14,62 @@ jobs:
           DATABASE_PASSWORD: challenge
           DATABASE_NAME: test_postgres
           DATABASE_SYNC: "true"
-      
+
       - image: cimg/postgres:16.4
         environment:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: challenge
           POSTGRES_DB: test_postgres
 
-    resource_class: medium 
-
     steps:
       - checkout
 
-      - python/install-packages:
-          pkg-manager: uv
-      
+      # Install uv
       - run:
-          name: Wait for Postgress
+          name: Install uv
+          command: |
+            curl -LsSf https://astral.sh/uv/install.sh | sh
+            echo 'export PATH="$HOME/.local/bin:$PATH"' >> $BASH_ENV
+
+      # Install project dependencies with uv
+      - run:
+          name: Install dependencies
+          command: |
+            uv sync          # or: uv pip install -r requirements.txt
+
+      - run:
+          name: Wait for Postgres
           command: |
             until pg_isready -h localhost -p 5432 -U postgres; do
               sleep 1
             done
 
       - run:
-          name: Run FastAPI tests
+          name: Run tests
           command: uv run pytest
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+
+  deploy:
+    docker:
+      - image: cimg/python:3.12
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Deploy
+          command: echo "Deploy steps here"
 
 workflows:
   build_test_deploy:
     jobs:
       - build_and_test
+      - deploy:
+          requires:
+            - build_and_test
+          filters:
+            branches:
+              only: main
