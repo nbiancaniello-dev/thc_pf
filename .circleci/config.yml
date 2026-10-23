@@ -1,19 +1,72 @@
 version: 2.1
 
+orbs:
+  python: circleci/python@3.0.0
+
 jobs:
-  test:
+  build_and_test:
     docker:
-      - image: cimg/base:stable
+      - image: cimg/python:3.12
+        environment:
+          DATABASE_HOST: postgres
+          DATABASE_PORT: 5432
+          DATABASE_USER: postgres
+          DATABASE_PASSWORD: challenge
+          DATABASE_NAME: test_postgres
+          DATABASE_SYNC: "true"
+
+      - image: cimg/postgres:16.4
+        name: postgres
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: challenge
+          POSTGRES_DB: test_postgres
+
+    resource_class: medium
+
     steps:
       - checkout
-      - setup_remote_docker:
-          version: 27.4.0
+
+      - python/install-packages:
+          pkg-manager: uv
+
       - run:
-          name: Start compose test environment
-          command: docker compose -f docker-compose.test.yml up --build -d
+          name: Install PostgreSQL client
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y postgresql-client
+
+      - restore_cache:
+          keys:
+            - uv-cache-v1-{{ checksum "uv.lock" }}
+
+      - run:
+          name: Install dependencies
+          command: uv sync --frozen
+
+      - save_cache:
+          key: uv-cache-v1-{{ checksum "uv.lock" }}
+          paths:
+            - ~/.cache/uv
+
+      - run:
+          name: Wait for PostgreSQL
+          command: |
+            until pg_isready -h postgres -p 5432 -U postgres; do
+              sleep 1
+            done
+
+      - run:
+          name: Run migrations
+          command: |
+            uv run alembic upgrade head
+
       - run:
           name: Run tests
-          command: docker compose -f docker-compose.test.yml exec -T test pytest src/tests/ -v
-      - run:
-          name: Cleanup
-          command: docker compose -f docker-compose.test.yml down -v
+          command: |
+            uv run pytest -v
+
+workflows:
+  build_test_deploy:
+    jobs:
+      - build_and_test
