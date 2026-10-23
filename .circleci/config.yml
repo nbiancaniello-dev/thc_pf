@@ -4,7 +4,7 @@ orbs:
   python: circleci/python@3.0.0
 
 jobs:
-  build_and_test: # this can be any name you choose
+  build_and_test:
     docker:
       - image: cimg/python:3.12
         environment:
@@ -14,7 +14,7 @@ jobs:
           DATABASE_PASSWORD: challenge
           DATABASE_NAME: test_postgres
           DATABASE_SYNC: "true"
-      # Service container image
+      
       - image: cimg/postgres:16.4
         environment:
           POSTGRES_USER: postgres
@@ -24,7 +24,7 @@ jobs:
     resource_class: medium 
 
     steps:
-      - checkout # checkout source code
+      - checkout
 
       - python/install-packages:
           pkg-manager: uv
@@ -37,34 +37,10 @@ jobs:
             done
 
       - run:
-          name: Run tests
+          name: Run FastAPI tests
           command: uv run pytest
-
-      - persist_to_workspace:
-          root: .
-          paths:
-            - .
-
-  deploy:
-    docker:
-      - image: cimg/python:3.12
-
-    resource_class: small
-    
-    steps:
-      - attach_workspace:
-          at: .
-      - run:
-          name: Deploy
-          command: echo "Deploy steps here"
 
 workflows:
   build_test_deploy:
     jobs:
       - build_and_test
-      - deploy:
-          requires:
-            - build_and_test
-          filters:
-            branches:
-              only: main
