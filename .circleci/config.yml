@@ -1,85 +1,19 @@
 version: 2.1
 
 jobs:
-  build_and_test:
+  test:
     docker:
-      - image: cimg/python:3.14
-        environment:
-          DATABASE_HOST: localhost
-          DATABASE_PORT: 5432
-          DATABASE_USER: postgres
-          DATABASE_PASSWORD: challenge
-          DATABASE_NAME: test_postgres
-          DATABASE_SYNC: "true"
-
-      - image: cimg/postgres:16.4
-        environment:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: challenge
-          POSTGRES_DB: test_postgres
-
+      - image: cimg/base:stable
     steps:
       - checkout
-
+      - setup_remote_docker:
+          version: 27.4.0
       - run:
-          name: Install uv
-          command: |
-            curl -LsSf https://astral.sh/uv/install.sh | sh
-            echo 'export PATH="$HOME/.local/bin:$PATH"' >> $BASH_ENV
-
-      - run:
-          name: Install dependencies
-          command: uv sync
-
-      - run:
-          name: Wait for Postgres
-          command: |
-            until pg_isready -h localhost -p 5432 -U postgres; do
-              sleep 1
-            done
-
+          name: Start compose test environment
+          command: docker compose -f docker-compose.test.yml up --build -d
       - run:
           name: Run tests
-          command: uv run pytest
-
-      - persist_to_workspace:
-          root: .
-          paths:
-            - .
-
-  build_docker:
-    machine:
-      image: ubuntu-2404:current
-    steps:
-      - checkout
+          command: docker compose -f docker-compose.test.yml exec -T test pytest src/tests/ -v
       - run:
-          name: Build application image
-          command: docker build -t cursor-challenge-backend:$CIRCLE_SHA1 .
-      - run:
-          name: Build compose services
-          command: docker compose build
-
-  deploy:
-    docker:
-      - image: cimg/python:3.14
-    steps:
-      - attach_workspace:
-          at: .
-      - run:
-          name: Deploy
-          command: echo "Deploy steps here"
-
-workflows:
-  build_test_deploy:
-    jobs:
-      - build_and_test
-      - build_docker
-      - deploy:
-          requires:
-            - build_and_test
-            - build_docker
-          filters:
-            branches:
-              only:
-                - main
-                - master
+          name: Cleanup
+          command: docker compose -f docker-compose.test.yml down -v
