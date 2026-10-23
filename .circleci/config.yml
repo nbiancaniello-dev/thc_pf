@@ -1,12 +1,9 @@
 version: 2.1
 
-orbs:
-  python: circleci/python@3.0.0
-
 jobs:
   build_and_test:
     docker:
-      - image: cimg/python:3.12
+      - image: cimg/python:3.14
         environment:
           DATABASE_HOST: localhost
           DATABASE_PORT: 5432
@@ -24,18 +21,15 @@ jobs:
     steps:
       - checkout
 
-      # Install uv
       - run:
           name: Install uv
           command: |
             curl -LsSf https://astral.sh/uv/install.sh | sh
             echo 'export PATH="$HOME/.local/bin:$PATH"' >> $BASH_ENV
 
-      # Install project dependencies with uv
       - run:
           name: Install dependencies
-          command: |
-            uv sync          # or: uv pip install -r requirements.txt
+          command: uv sync
 
       - run:
           name: Wait for Postgres
@@ -53,9 +47,21 @@ jobs:
           paths:
             - .
 
+  build_docker:
+    machine:
+      image: ubuntu-2404:current
+    steps:
+      - checkout
+      - run:
+          name: Build application image
+          command: docker build -t cursor-challenge-backend:$CIRCLE_SHA1 .
+      - run:
+          name: Build compose services
+          command: docker compose build
+
   deploy:
     docker:
-      - image: cimg/python:3.12
+      - image: cimg/python:3.14
     steps:
       - attach_workspace:
           at: .
@@ -67,9 +73,13 @@ workflows:
   build_test_deploy:
     jobs:
       - build_and_test
+      - build_docker
       - deploy:
           requires:
             - build_and_test
+            - build_docker
           filters:
             branches:
-              only: main
+              only:
+                - main
+                - master
